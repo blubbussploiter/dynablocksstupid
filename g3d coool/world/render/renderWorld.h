@@ -1,6 +1,7 @@
 #pragma once
 
 #include <G3DAll.h>
+#include "renderLevel.h"
 
 namespace block
 {
@@ -11,8 +12,8 @@ namespace block
 
 		VARAreaRef varArea;
 
-		Array<uint32_t> indices;
-		Array<uint32_t> free_indices;
+		Array<uint32_t> vertexRef;
+		Array<uint32_t> freeVertex;
 
 		Array<Vector3> vertices;
 		Array<Vector3> normals;
@@ -27,10 +28,11 @@ namespace block
 
 	public:
 
-		void doRender(RenderDevice* renderDevice);
+		void beginRender(RenderDevice* renderDevice);
+		void endRender(RenderDevice* renderDevice);
+		void sendGeometry(RenderDevice* renderDevice);
 
 		void createVAR();
-		void updateVAR();
 		
 		Vector3 getVertice(uint32_t index);
 		uint32_t addVertice(Vector3 vertex, Vector3 normal, Color4 color, Vector2 uv);
@@ -42,6 +44,7 @@ namespace block
 		void removeVertice(uint32_t index);
 
 		RenderWorld();
+		~RenderWorld();
 
 	};
 }

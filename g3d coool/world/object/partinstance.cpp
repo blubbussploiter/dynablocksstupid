@@ -1,7 +1,7 @@
 #include "partInstance.h"
 #include "../applet.h"
 
-void block::BlockInstance::setCoordinateFrame(const CoordinateFrame& newCFrame)
+void block::PartInstance::setCoordinateFrame(const CoordinateFrame& newCFrame)
 {
 	if (cframe != newCFrame)
 	{
@@ -10,10 +10,18 @@ void block::BlockInstance::setCoordinateFrame(const CoordinateFrame& newCFrame)
 			__render_level->notifyBlockTranslate(_block, newCFrame);
 		}
 		cframe = newCFrame;
+		if (body)
+		{
+			body->setPosition(cframe);
+		}
+		else if (primitive)
+		{
+			primitive->setPosition(cframe);
+		}
 	}
 }
 
-void block::BlockInstance::setSize(const Vector3& newSize)
+void block::PartInstance::setSize(const Vector3& newSize)
 {
 	Vector3 rndSize; 
 	/* round, guess from: https://ia800708.us.archive.org/BookReader/BookReaderImages.php?zip=/26/items/7390-p-001-c-drawings/7390P001C_Drawings_jp2.zip&file=7390P001C_Drawings_jp2/7390P001C_Drawings_0012.jp2&id=7390-p-001-c-drawings&scale=4&rotate=0 */
@@ -23,16 +31,30 @@ void block::BlockInstance::setSize(const Vector3& newSize)
 	if (size != rndSize)
 	{
 		size = rndSize;
-		/* just remake -- might not work smoothly lol */
-		if (_block != -1)
+		if (blockType != NORMAL_BLOCK)
 		{
-			__render_level->removeBlock(_block);
-			_block = __render_level->createBlockFromBlockInstance(this);
+			size.x = max(size.x, max(size.y, size.z));
+			size.y = size.x;
+			size.z = size.x;
+		}
+		notifyGeometryUpdate();
+		if (body)
+		{
+			body->setSize(size);
+		}
+		else if (primitive)
+		{
+			primitive->setSize(size);
 		}
 	}
 }
 
-void block::BlockInstance::setColor(const Color3& newColor)
+void block::PartInstance::setColor(const Color3& newColor)
+{
+	setColor4(newColor);
+}
+
+void block::PartInstance::setColor4(const Color4& newColor)
 {
 	if (color != newColor)
 	{
@@ -44,17 +66,107 @@ void block::BlockInstance::setColor(const Color3& newColor)
 	}
 }
 
-void block::BlockInstance::notifyUpdateSurface()
+void block::PartInstance::setAnchored(bool anchored) 
+{
+	this->anchored = anchored;
+	ignore = anchored;
+	if (body)
+	{
+		body->setAnchored(anchored);
+		if (anchored)
+		{
+			primitive->detach();
+		}
+		else {
+			primitive->attach(body);
+		}
+	}
+}
+
+void block::PartInstance::setVelocity(Vector3 velocity)
+{
+	if (body)
+	{
+		Physics::Velocity vel = body->getVelocity();
+		vel.lin = velocity;
+		body->setVelocity(vel);
+	}
+}
+
+void block::PartInstance::setRotVelocity(Vector3 velocity)
+{
+	if (body)
+	{
+		Physics::Velocity vel = body->getVelocity();
+		vel.rot = velocity;
+		body->setVelocity(vel);
+	}
+}
+
+Vector3 block::PartInstance::getVelocity()
+{
+	if (body)
+	{
+		Physics::Velocity vel = body->getVelocity();
+		return vel.lin;
+	}
+	return Vector3::ZERO;
+}
+
+Vector3 block::PartInstance::getRotVelocity()
+{
+	if (body)
+	{
+		Physics::Velocity vel = body->getVelocity();
+		return vel.rot;
+	}
+	return Vector3::ZERO;
+}
+
+void block::PartInstance::notifyGeometryUpdate()
 {
 	/* just remake -- might not work smoothly lol */
 	if (_block != -1)
 	{
-		//__render_level->removeBlock(_block);
-		//_block = __render_level->createBlockFromBlockInstance(this);
+		__render_level->removeBlock(_block);
+		_block = -1;
+		_block = __render_level->createBlockFromBlockInstance(this);
 	}
 }
 
-void block::BlockInstance::doRender(RenderDevice* renderDevice)
+void block::PartInstance::notifyLevelUpdate()
+{
+	if (_block != -1)
+	{
+		if (transparency > 0)
+		{
+			__render_level->changeLevel(_block, __render_level->transparentLevel);
+		}
+		else
+		{
+			__render_level->changeLevel(_block, __render_level->opaqueLevel);
+		}
+	}
+}
+
+void block::PartInstance::onStep()
+{
+	if (!ignore)
+	{
+		if (primitive)
+		{
+			CoordinateFrame position = primitive->getPosition();
+
+			if (cframe != position && _block != -1)
+			{
+				__render_level->notifyBlockTranslate(_block, position);
+				cframe = position;
+			}
+		}
+	}
+}
+
+void block::PartInstance::doRender(RenderDevice* renderDevice)
 {
 	if (nameShown)
 	{
@@ -83,13 +195,13 @@ void block::BlockInstance::doRender(RenderDevice* renderDevice)
 	}
 }
 
-block::BlockInstance::BlockInstance() : PVInstance("Block")
+block::PartInstance::PartInstance() : PVInstance("Block")
 {
 	className = "Block";
 	friction = 0.3f;
 	elasticity = 0.5f;
 	color = Color3::gray();
-	size = Vector3(2, 1, 4);
+	size = Vector3(4, 1, 2);
 	blockType = BlockType::NORMAL_BLOCK;
 	_block =  -1;
 	front = SurfaceType::NO_SURFACE;
@@ -98,8 +210,11 @@ block::BlockInstance::BlockInstance() : PVInstance("Block")
 	top = SurfaceType::BUMP;
 	left = SurfaceType::NO_SURFACE;
 	right = SurfaceType::NO_SURFACE;
+	anchored = false;
+	body = 0;
+	primitive = 0;
 }
 
-block::BlockInstance::~BlockInstance()
+block::PartInstance::~PartInstance()
 {
 }

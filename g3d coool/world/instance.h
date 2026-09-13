@@ -13,13 +13,13 @@ namespace block
 	typedef std::vector<InstanceRef> Instances;
 
 	template <typename Class>
-	Class* toClassType(Instance* instance)
+	static Class* toClassType(Instance* instance)
 	{
 		return dynamic_cast<Class*>(instance);
 	}
 
 	template <typename Class>
-	bool isInstanceClassType(Instance* instance)
+	static bool isInstanceClassType(Instance* instance)
 	{
 		return toClassType<Class>(instance) != nullptr;
 	}
@@ -132,8 +132,7 @@ namespace block
 		~Instance();
 	};
 
-
-	bool isA(Instance* instance, const char* className)
+	static bool isA(Instance* instance, const char* className)
 	{
 		return (className == instance->getClassName());
 	}

@@ -5,6 +5,6 @@ block::PVInstance::PVInstance(const char* name)
 {
 	this->name = name;
 	className = "PVInstance";
-	nameShown = true;
+	nameShown = false;
 	controllerFlagShown = true;
 }

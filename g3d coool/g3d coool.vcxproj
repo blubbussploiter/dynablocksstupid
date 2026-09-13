@@ -38,7 +38,8 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <EnableUnitySupport>true</EnableUnitySupport>
+    <EnableUnitySupport>false</EnableUnitySupport>
+    <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -89,7 +90,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>.\include;</AdditionalIncludeDirectories>
     </ClCompile>
@@ -302,12 +303,24 @@
     <ClInclude Include="include\SDL_video.h" />
     <ClInclude Include="world\datamodel.h" />
     <ClInclude Include="world\instance.h" />
+    <ClInclude Include="world\lighting.h" />
     <ClInclude Include="world\model.h" />
     <ClInclude Include="world\object\partInstance.h" />
     <ClInclude Include="world\object\pvinstance.h" />
     <ClInclude Include="world\object\renderstub.h" />
+    <ClInclude Include="world\object\stepperstub.h" />
+    <ClInclude Include="world\physics\body.h" />
+    <ClInclude Include="world\physics\joint\motorJoint.h" />
+    <ClInclude Include="world\physics\joint\joint.h" />
+    <ClInclude Include="world\physics\kernel.h" />
+    <ClInclude Include="world\physics\primitive.h" />
+    <ClInclude Include="world\render\cylinder.hpp" />
+    <ClInclude Include="world\render\icosphere.hpp" />
+    <ClInclude Include="world\render\renderHelp.hpp" />
     <ClInclude Include="world\render\renderLevel.h" />
     <ClInclude Include="world\render\renderWorld.h" />
+    <ClInclude Include="world\render\surface.hpp" />
+    <ClInclude Include="world\runService.h" />
     <ClInclude Include="world\ui\control.h" />
     <ClInclude Include="world\ui\guiRoot.h" />
     <ClInclude Include="world\workspace.h" />
@@ -325,15 +338,97 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="applet.cpp" />
+    <ClCompile Include="include\ode\OPCODE\Ice\IceAABB.cpp" />
+    <ClCompile Include="include\ode\OPCODE\Ice\IceContainer.cpp" />
+    <ClCompile Include="include\ode\OPCODE\Ice\IceHPoint.cpp" />
+    <ClCompile Include="include\ode\OPCODE\Ice\IceIndexedTriangle.cpp" />
+    <ClCompile Include="include\ode\OPCODE\Ice\IceMatrix3x3.cpp" />
+    <ClCompile Include="include\ode\OPCODE\Ice\IceMatrix4x4.cpp" />
+    <ClCompile Include="include\ode\OPCODE\Ice\IceOBB.cpp" />
+    <ClCompile Include="include\ode\OPCODE\Ice\IcePlane.cpp" />
+    <ClCompile Include="include\ode\OPCODE\Ice\IcePoint.cpp" />
+    <ClCompile Include="include\ode\OPCODE\Ice\IceRandom.cpp" />
+    <ClCompile Include="include\ode\OPCODE\Ice\IceRay.cpp" />
+    <ClCompile Include="include\ode\OPCODE\Ice\IceRevisitedRadix.cpp" />
+    <ClCompile Include="include\ode\OPCODE\Ice\IceSegment.cpp" />
+    <ClCompile Include="include\ode\OPCODE\Ice\IceTriangle.cpp" />
+    <ClCompile Include="include\ode\OPCODE\Ice\IceUtils.cpp" />
+    <ClCompile Include="include\ode\OPCODE\Opcode.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_AABBCollider.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_AABBTree.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_BaseModel.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_BoxPruning.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_Collider.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_Common.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_HybridModel.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_LSSCollider.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_MeshInterface.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_Model.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_OBBCollider.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_OptimizedTree.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_Picking.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_PlanesCollider.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_RayCollider.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_SphereCollider.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_SweepAndPrune.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_TreeBuilders.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_TreeCollider.cpp" />
+    <ClCompile Include="include\ode\OPCODE\OPC_VolumeCollider.cpp" />
+    <ClCompile Include="include\ode\OPCODE\StdAfx.cpp" />
+    <ClCompile Include="include\ode\src\array.cpp" />
+    <ClCompile Include="include\ode\src\box.cpp" />
+    <ClCompile Include="include\ode\src\capsule.cpp" />
+    <ClCompile Include="include\ode\src\collision_cylinder_box.cpp" />
+    <ClCompile Include="include\ode\src\collision_cylinder_plane.cpp" />
+    <ClCompile Include="include\ode\src\collision_cylinder_sphere.cpp" />
+    <ClCompile Include="include\ode\src\collision_kernel.cpp" />
+    <ClCompile Include="include\ode\src\collision_quadtreespace.cpp" />
+    <ClCompile Include="include\ode\src\collision_space.cpp" />
+    <ClCompile Include="include\ode\src\collision_transform.cpp" />
+    <ClCompile Include="include\ode\src\collision_util.cpp" />
+    <ClCompile Include="include\ode\src\convex.cpp" />
+    <ClCompile Include="include\ode\src\cylinder.cpp" />
+    <ClCompile Include="include\ode\src\error.cpp" />
+    <ClCompile Include="include\ode\src\export-dif.cpp" />
+    <ClCompile Include="include\ode\src\fastdot.c" />
+    <ClCompile Include="include\ode\src\fastldlt.c" />
+    <ClCompile Include="include\ode\src\fastlsolve.c" />
+    <ClCompile Include="include\ode\src\fastltsolve.c" />
+    <ClCompile Include="include\ode\src\joint.cpp" />
+    <ClCompile Include="include\ode\src\lcp.cpp" />
+    <ClCompile Include="include\ode\src\mass.cpp" />
+    <ClCompile Include="include\ode\src\mat.cpp" />
+    <ClCompile Include="include\ode\src\matrix.cpp" />
+    <ClCompile Include="include\ode\src\memory.cpp" />
+    <ClCompile Include="include\ode\src\misc.cpp" />
+    <ClCompile Include="include\ode\src\obstack.cpp" />
+    <ClCompile Include="include\ode\src\ode.cpp" />
+    <ClCompile Include="include\ode\src\odemath.cpp" />
+    <ClCompile Include="include\ode\src\plane.cpp" />
+    <ClCompile Include="include\ode\src\quickstep.cpp" />
+    <ClCompile Include="include\ode\src\ray.cpp" />
+    <ClCompile Include="include\ode\src\rotation.cpp" />
+    <ClCompile Include="include\ode\src\sphere.cpp" />
+    <ClCompile Include="include\ode\src\step.cpp" />
+    <ClCompile Include="include\ode\src\stepfast.cpp" />
+    <ClCompile Include="include\ode\src\timer.cpp" />
+    <ClCompile Include="include\ode\src\util.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="world\datamodel.cpp" />
     <ClCompile Include="world\instance.cpp" />
+    <ClCompile Include="world\lighting.cpp" />
     <ClCompile Include="world\model.cpp" />
     <ClCompile Include="world\object\partinstance.cpp" />
     <ClCompile Include="world\object\pvinstance.cpp" />
-    <ClCompile Include="world\render\block.cpp" />
+    <ClCompile Include="world\physics\body.cpp" />
+    <ClCompile Include="world\physics\joint\motorJoint.cpp" />
+    <ClCompile Include="world\physics\joint\_joint.cpp" />
+    <ClCompile Include="world\physics\kernel.cpp" />
+    <ClCompile Include="world\physics\primitive.cpp" />
+    <ClCompile Include="world\render\blockMesh.cpp" />
     <ClCompile Include="world\render\renderLevel.cpp" />
     <ClCompile Include="world\render\renderWorld.cpp" />
+    <ClCompile Include="world\runService.cpp" />
     <ClCompile Include="world\ui\guiRoot.cpp" />
     <ClCompile Include="world\workspace.cpp" />
   </ItemGroup>

@@ -1,32 +1,43 @@
 #pragma once
 
 #include "pvinstance.h"
+#include "../physics/body.h"
+#include "../physics/primitive.h"
 #include "../render/renderLevel.h"
+
+/* huge thanks to Taragaeot (@renthes) and hargonservices (@confirmables) from CS for telling of cards */
 
 namespace block
 {
 
-	class BlockInstance : public PVInstance
+	class PartInstance : public PVInstance
 	{
 	protected:
 		friend class RenderLevel;
 		friend class WorkspaceInstance;
-
+		Physics::Body* body;
+		Physics::Primitive* primitive;
+		Controller::ControllerType controllerType;
 		CoordinateFrame cframe;
 		BlockType blockType;
 		float friction;
 		float elasticity;
+		float transparency;
+		float reflectancy;
+		bool anchored;
+		bool canCollide;
 		Vector3 size;
-		Color3 color;
+		Color4 color;
 		int _block;
-
 		SurfaceType top;
 		SurfaceType bottom;
 		SurfaceType right;
 		SurfaceType left;
 		SurfaceType front;
 		SurfaceType back;
-
+		/* impl later */
+		bool hasCard;
+		bool hasOnTouch; 
 	public:
 
 		void setCoordinateFrame(const CoordinateFrame& newCFrame);
@@ -36,42 +47,95 @@ namespace block
 		void setSize(const Vector3& newSize);
 		Vector3 getSize() { return size; }
 		void setColor(const Color3& newColor);
-		Color3 getColor() { return color;  }
+		void setColor4(const Color4& newColor);
+		Color3 getColor() { return Color3(color);  }
 		void setTopSurface(SurfaceType surface) {
-			top = surface;
-			notifyUpdateSurface();
+			if (top != surface)
+			{
+				top = surface;
+				notifyGeometryUpdate();
+			}
 		}
 		SurfaceType getTopSurface() { return top; }
 		void setBottomSurface(SurfaceType surface) {
-			bottom = surface;
-			notifyUpdateSurface();
+			if (bottom != surface)
+			{
+				bottom = surface;
+				notifyGeometryUpdate();
+			}
 		}
 		SurfaceType getBottomSurface() { return bottom; }
 		void setFrontSurface(SurfaceType surface) {
-			front = surface;
-			notifyUpdateSurface();
+			if (front != surface)
+			{
+				front = surface;
+				notifyGeometryUpdate();
+			}
 		}
 		SurfaceType getFrontSurface() { return front; }
 		void setBackSurface(SurfaceType surface) {
-			back = surface;
-			notifyUpdateSurface();
+			if (back != surface)
+			{
+				back = surface;
+				notifyGeometryUpdate();
+			}
 		}
 		SurfaceType getBackSurface() { return back; }
 		void setRightSurface(SurfaceType surface) { 
-			right = surface; 
-			notifyUpdateSurface();
+			if (right != surface)
+			{
+				right = surface;
+				notifyGeometryUpdate();
+			}
 		}
 		SurfaceType getRightSurface() { return right; }
 		void setLeftSurface(SurfaceType surface) { 
-			left = surface; 
-			notifyUpdateSurface();
+			if (left != surface)
+			{
+				left = surface;
+				notifyGeometryUpdate();
+			}
 		}
 		SurfaceType getLeftSurface() { return left; }
-		void notifyUpdateSurface();
+		void notifyGeometryUpdate();
+		void notifyLevelUpdate();
+
+		BlockType getShape() { return blockType; }
+		void setShape(BlockType shape) { 
+			blockType = shape;
+			if (shape == BALL_BLOCK)
+			{
+				size.x = max(size.x, max(size.y, size.z));
+				size.y = size.x;
+				size.z = size.x;
+			}
+			notifyGeometryUpdate();
+		}
+		void setControllerType(Controller::ControllerType type)
+		{
+			controllerType = type;
+			notifyGeometryUpdate();
+		}
+		Controller::ControllerType getControllerType() { return controllerType; }
+		void setTransparency(float newTrans) {
+			transparency = newTrans;
+			notifyLevelUpdate();
+			setColor4(Color4(color.r, color.g, color.b, 1 - transparency));
+		}
+		bool getAnchored() { return anchored; }
+		void setAnchored(bool anchored);
+		void setVelocity(Vector3 velocity);
+		void setRotVelocity(Vector3 velocity);
+		Vector3 getVelocity();
+		Vector3 getRotVelocity();
+		bool getNameShown() { return nameShown; }
+		void setNameShown(bool show) { nameShown = show; }
+		Physics::Body* getBody() { return body; }
 
 		void doRender(RenderDevice* renderDevice);
+		void onStep();
 
-		BlockInstance();
-		~BlockInstance();
+		PartInstance();
+		~PartInstance();
 	};
 }

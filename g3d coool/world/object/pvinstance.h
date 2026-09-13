@@ -2,11 +2,12 @@
 
 #include <G3DAll.h>
 #include "renderstub.h"
+#include "stepperstub.h"
 #include "../ui/control.h"
 
 namespace block
 {
-	class PVInstance : public IRenderable
+	class PVInstance : public IRenderable, public ISteppable
 	{
 	protected:
 		bool nameShown;
@@ -17,6 +18,7 @@ namespace block
 
 		void doRender(RenderDevice* renderDevice) {}
 		void doRender2D(RenderDevice* renderDevice) {}
+		void onStep() {}
 
 		PVInstance(const char* name);
 	};

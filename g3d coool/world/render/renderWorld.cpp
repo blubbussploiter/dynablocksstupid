@@ -1,53 +1,48 @@
 #include "renderWorld.h"
+#include "../applet.h"
 
-void block::RenderWorld::doRender(RenderDevice* renderDevice)
+#define VAREA_BASESZ ((16777216) + 8) * 4
+
+void block::RenderWorld::beginRender(RenderDevice* renderDevice)
 {
-	if (!vertexVAR.valid())
-	{
-		createVAR();
-	}
+	renderDevice->beginIndexedPrimitives();
+	sendGeometry(renderDevice);
+}
 
+void block::RenderWorld::endRender(RenderDevice* renderDevice)
+{
+	renderDevice->endIndexedPrimitives();
+}
+
+void block::RenderWorld::sendGeometry(RenderDevice* renderDevice)
+{
 	if (varDirty)
 	{
-		updateVAR();
-		varDirty = true;
+		createVAR();
+		varDirty = false;
 	}
-
-	renderDevice->beginIndexedPrimitives();
 
 	renderDevice->setVertexArray(vertexVAR);
 	renderDevice->setColorArray(colorVAR);
 	renderDevice->setNormalArray(normalVAR);
 
-	renderDevice->sendIndices(RenderDevice::TRIANGLES, indices);
-
-	renderDevice->endIndexedPrimitives();
 }
 
 void block::RenderWorld::createVAR()
 {
-	if (vertexVAR.valid())
+	if (varDirty)
 	{
-		return;
-	}
-	vertexVAR = VAR(vertices, varArea);
-	normalVAR = VAR(normals, varArea);
-	colorVAR = VAR(color, varArea);
-}
+		varArea = VARArea::create((44 * vertices.size() + 1024), VARArea::WRITE_ONCE);
 
-void block::RenderWorld::updateVAR()
-{
-	if (vertexVAR.valid())
-	{
-		vertexVAR.update(vertices);
-		normalVAR.update(normals);
-		colorVAR.update(color);
+		vertexVAR = VAR(vertices, varArea);
+		normalVAR = VAR(normals, varArea);
+		colorVAR = VAR(color, varArea);
 	}
 }
 
 Vector3 block::RenderWorld::getVertice(uint32_t index)
 {
-	if (indices.size() > index)
+	if (vertexRef.size() > index)
 	{
 		return vertices[index];
 	}
@@ -56,20 +51,20 @@ Vector3 block::RenderWorld::getVertice(uint32_t index)
 
 uint32_t block::RenderWorld::addVertice(Vector3 vertex, Vector3 normal, Color4 ncolor, Vector2 uv)
 {
-	if (free_indices.size() > 0)
+	if (freeVertex.size() > 0)
 	{
-		uint32_t last_free = free_indices.pop();
+		uint32_t last_free = freeVertex.pop();
 		vertices[last_free] = vertex;
 		normals[last_free] = normal;
 		color[last_free] = ncolor;
 		texture[last_free] = uv;
-		free_indices[last_free] = 1;
+		freeVertex[last_free] = 1;
 		return last_free;
 	}
 	else
 	{
-		int indice = indices.size();
-		indices.push_back(indice);
+		int indice = vertexRef.size();
+		vertexRef.push_back(indice);
 		vertices.push_back(vertex);
 		normals.push_back(normal);
 		color.push_back(ncolor);
@@ -81,7 +76,7 @@ uint32_t block::RenderWorld::addVertice(Vector3 vertex, Vector3 normal, Color4 n
 
 void block::RenderWorld::updateVertice(uint32_t index, Vector3 vertex, Vector3 normal, Color4 ncolor, Vector2 uv)
 {
-	if (indices.size() > index)
+	if (vertexRef.size() > index)
 	{
 		vertices[index] = vertex;
 		normals[index] = normal;
@@ -93,8 +88,9 @@ void block::RenderWorld::updateVertice(uint32_t index, Vector3 vertex, Vector3 n
 
 void block::RenderWorld::updateVerticeColor(uint32_t index, Color4 ncolor)
 {
-	if (indices.size() > index)
+	if (vertexRef.size() > index)
 	{
+		//printf("Makes dirty update COL\n");
 		color[index] = ncolor;
 		varDirty = true;
 	}
@@ -102,8 +98,9 @@ void block::RenderWorld::updateVerticeColor(uint32_t index, Color4 ncolor)
 
 void block::RenderWorld::updateVerticeVert(uint32_t index, Vector3 vert)
 {
-	if (indices.size() > index)
+	if (vertexRef.size() > index)
 	{
+		//printf("Makes dirty update VERT\n");
 		vertices[index] = vert;
 		varDirty = true;
 	}
@@ -111,8 +108,9 @@ void block::RenderWorld::updateVerticeVert(uint32_t index, Vector3 vert)
 
 void block::RenderWorld::updateVerticeNormal(uint32_t index, Vector3 norm)
 {
-	if (indices.size() > index)
+	if (vertexRef.size() > index)
 	{
+		//printf("Makes dirty update NRM\n");
 		normals[index] = norm;
 		varDirty = true;
 	}
@@ -120,8 +118,9 @@ void block::RenderWorld::updateVerticeNormal(uint32_t index, Vector3 norm)
 
 void block::RenderWorld::updateVerticeUV(uint32_t index, Vector2 uv)
 {
-	if (indices.size() > index)
+	if (vertexRef.size() > index)
 	{
+		//printf("Makes dirty update UV\n");
 		texture[index] = uv;
 		varDirty = true;
 	}
@@ -129,24 +128,26 @@ void block::RenderWorld::updateVerticeUV(uint32_t index, Vector2 uv)
 
 void block::RenderWorld::removeVertice(uint32_t index)
 {
-	if (indices.size() > index)
+	uint32_t indice = vertexRef[index];
+	if (indice == 1)
 	{
-		uint32_t indice = indices[index];
-		if (indice == 1)
-		{
-			indices[index] = 0;
-			free_indices.append(index);
-		}
-		else
-		{
-			indices[index] = indice - 1;
-		}
+		vertexRef[index] = 0;
+		freeVertex.append(index);
+	}
+	else
+	{
+		vertexRef[index] = indice - 1;
 	}
 }
 
 block::RenderWorld::RenderWorld()
 {
-	varArea = VARArea::create(((16777216) + 8) * 4, VARArea::WRITE_ONCE);
+	varArea = VARArea::create(VAREA_BASESZ, VARArea::WRITE_EVERY_FRAME);
 	varDirty = false;
 	printf("varArea size = %d kb\n", varArea->freeSize() / 1024);
+}
+
+block::RenderWorld::~RenderWorld()
+{
+
 }

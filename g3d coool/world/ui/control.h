@@ -6,7 +6,7 @@ namespace block
 {
 	class Controller : public ReferenceCountedObject
 	{
-
+	public:
 		enum ControllerType
 		{
 			NO_CONTROLLER,

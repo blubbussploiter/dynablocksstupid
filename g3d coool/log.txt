@@ -1,5 +1,5 @@
 Application Log
-Start: Mon Sep  7 16:25:09 2026
+Start: Sun Sep 13 04:22:50 2026
 
 _____________________________________________________
 
@@ -141,36 +141,3 @@ System {
 Warning: G3D::GApp could not load font "console-small.fnt".
 This may be because the G3D::GApp::Settings::dataDir was not
 properly set in main().
-_____________________________________________________
-
-    ###    Files Used    ###
-
-F:\repos\blocks\Release\content\sky/plainsky/null_plainsky512_ft.jpg
-F:\repos\blocks\Release\content\sky/plainsky/null_plainsky512_bk.jpg
-F:\repos\blocks\Release\content\sky/plainsky/null_plainsky512_up.jpg
-F:\repos\blocks\Release\content\sky/plainsky/null_plainsky512_dn.jpg
-F:\repos\blocks\Release\content\sky/plainsky/null_plainsky512_rt.jpg
-F:\repos\blocks\Release\content\sky/plainsky/null_plainsky512_lf.jpg
-F:\repos\blocks\Release\content\sky/moon.jpg
-F:\repos\blocks\Release\content\sky/moon-alpha.jpg
-F:\repos\blocks\Release\content\sky/sun.jpg
-F:\repos\blocks\Release\content\sky/lensflare.jpg
-F:\repos\blocks\Release\content\sky/sun-rays.jpg
-F:\repos\blocks\Release\content\sky/real.str
-F:\repos\blocks\Release/content/font/dominant-small.fnt
-
-_____________________________________________________
-
-    ###    Network Cleanup    ###
-
-Network cleaned up.
-Shutting down RenderDevice.
-Restoring gamma.
-Error setting gamma ramp! (Possibly LCD monitor)
-Freeing all VAR memory
-Deleting window.
-_____________________________________________________
-
-    ###    Shutdown    ###
-
-Closing log file
