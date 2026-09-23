@@ -1,5 +1,16 @@
 #include "partInstance.h"
 #include "../applet.h"
+#include "../ui/fonts.h"
+
+/* thank you RNR */
+static block::NormalId normals_aligned[6] = {
+	block::NormalId::FRONT,
+	block::NormalId::BACK,
+	block::NormalId::RIGHT,
+	block::NormalId::LEFT,
+	block::NormalId::TOP,
+	block::NormalId::BOTTOM
+};
 
 void block::PartInstance::setCoordinateFrame(const CoordinateFrame& newCFrame)
 {
@@ -7,7 +18,7 @@ void block::PartInstance::setCoordinateFrame(const CoordinateFrame& newCFrame)
 	{
 		if (_block != -1)
 		{
-			__render_level->notifyBlockTranslate(_block, newCFrame);
+			RenderLevel::get()->notifyBlockTranslate(_block, newCFrame);
 		}
 		cframe = newCFrame;
 		if (body)
@@ -61,7 +72,7 @@ void block::PartInstance::setColor4(const Color4& newColor)
 		color = newColor;
 		if (_block != -1)
 		{
-			__render_level->notifyBlockChangeColor(_block, color);
+			RenderLevel::get()->notifyBlockChangeColor(_block, color);
 		}
 	}
 }
@@ -123,14 +134,23 @@ Vector3 block::PartInstance::getRotVelocity()
 	return Vector3::ZERO;
 }
 
+block::Physics::Body* block::PartInstance::getBody()
+{
+	if (body && body->getParent())
+	{
+		return body->getParent();
+	}
+	return body;
+}
+
 void block::PartInstance::notifyGeometryUpdate()
 {
 	/* just remake -- might not work smoothly lol */
 	if (_block != -1)
 	{
-		__render_level->removeBlock(_block);
+		RenderLevel::get()->removeBlock(_block);
 		_block = -1;
-		_block = __render_level->createBlockFromBlockInstance(this);
+		_block = RenderLevel::get()->createBlockFromBlockInstance(this);
 	}
 }
 
@@ -140,11 +160,11 @@ void block::PartInstance::notifyLevelUpdate()
 	{
 		if (transparency > 0)
 		{
-			__render_level->changeLevel(_block, __render_level->transparentLevel);
+			RenderLevel::get()->changeLevel(_block, RenderLevel::get()->transparentLevel);
 		}
 		else
 		{
-			__render_level->changeLevel(_block, __render_level->opaqueLevel);
+			RenderLevel::get()->changeLevel(_block, RenderLevel::get()->opaqueLevel);
 		}
 	}
 }
@@ -159,8 +179,16 @@ void block::PartInstance::onStep()
 
 			if (cframe != position && _block != -1)
 			{
-				__render_level->notifyBlockTranslate(_block, position);
+				RenderLevel::get()->notifyBlockTranslate(_block, position);
 				cframe = position;
+			}
+		}
+		if (body)
+		{
+			float velLength = (getVelocity() + getRotVelocity()).length();
+			if (body->atRest() && velLength > 0.5f)
+			{
+				body->wakeUp();
 			}
 		}
 	}
@@ -170,7 +198,7 @@ void block::PartInstance::doRender(RenderDevice* renderDevice)
 {
 	if (nameShown)
 	{
-		GFontRef font = globalApplet->Datamodel()->gui->getDominantFont();
+		GFontRef font = Fonts::getDominantFont();
 		Vector3 gamepoint = getPosition();
 		Vector3 camerapoint = renderDevice->getCameraToWorldMatrix().translation;
 		float distance = powf(powf(gamepoint.x - camerapoint.x, 2) + powf(gamepoint.y - camerapoint.y, 2) + powf(gamepoint.z - camerapoint.z, 2), 0.5f);
@@ -195,6 +223,58 @@ void block::PartInstance::doRender(RenderDevice* renderDevice)
 	}
 }
 
+Vector3 block::PartInstance::getNormalIdDirection(NormalId normal)
+{
+	switch (normal)
+	{
+	case NormalId::TOP:
+	{
+		return Vector3::unitY();
+	}
+	case NormalId::BOTTOM:
+	{
+		return -Vector3::unitY();
+	}
+	case NormalId::RIGHT:
+	{
+		return Vector3::unitX();
+	}
+	case NormalId::LEFT:
+	{
+		return -Vector3::unitX();
+	}
+	case NormalId::FRONT:
+	{
+		return Vector3::unitZ();
+	}
+	case NormalId::BACK:
+	{
+		return -Vector3::unitZ();
+	}
+	}
+	return Vector3::zero();
+}
+
+Vector3 block::PartInstance::getNormalFromId(const CoordinateFrame& cframe, NormalId normal)
+{
+	return cframe.vectorToWorldSpace(getNormalIdDirection(normal));
+}
+
+block::NormalId block::PartInstance::getNormalFromVector(const CoordinateFrame& cframeWorld, const Vector3& direction)
+{
+	float tolerance = 0.001f;
+
+	for (size_t i = 0; i < 6; i++)
+	{
+		NormalId n = normals_aligned[i];
+		if (dot(getNormalFromId(cframeWorld, n), direction) > tolerance)
+		{
+			return n;
+		}
+	}
+	return UNDEFINED;
+}
+
 block::PartInstance::PartInstance() : PVInstance("Block")
 {
 	className = "Block";
@@ -210,6 +290,7 @@ block::PartInstance::PartInstance() : PVInstance("Block")
 	top = SurfaceType::BUMP;
 	left = SurfaceType::NO_SURFACE;
 	right = SurfaceType::NO_SURFACE;
+	canCollide = true;
 	anchored = false;
 	body = 0;
 	primitive = 0;

@@ -35,6 +35,7 @@ namespace block
 		void createVAR();
 		
 		Vector3 getVertice(uint32_t index);
+		Vector3 getNormal(uint32_t index);
 		uint32_t addVertice(Vector3 vertex, Vector3 normal, Color4 color, Vector2 uv);
 		void updateVertice(uint32_t index, Vector3 vertex, Vector3 normal, Color4 color, Vector2 uv);
 		void updateVerticeColor(uint32_t index, Color4 color);
@@ -42,6 +43,8 @@ namespace block
 		void updateVerticeNormal(uint32_t index, Vector3 norm);
 		void updateVerticeUV(uint32_t index, Vector2 uv);
 		void removeVertice(uint32_t index);
+
+		static RenderWorld* get();
 
 		RenderWorld();
 		~RenderWorld();

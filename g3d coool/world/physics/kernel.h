@@ -9,6 +9,9 @@ namespace block
 {
 	namespace Physics
 	{
+		class Primitive;
+		class Body;
+
 		enum Geometry
 		{
 			GEOMETRY_SPHERE,
@@ -20,6 +23,12 @@ namespace block
 			Vector3 rot, lin;
 		};
 
+		struct HitTestInfo
+		{
+			Array<Vector3> contact_pt;
+			Array<Vector3> contact_nm;
+		};
+
 		class Kernel
 		{
 		protected:
@@ -29,7 +38,6 @@ namespace block
 			dWorldID world;
 			dSpaceID space;
 			dJointGroupID contacts;
-			dJointGroupID joints;
 			Array<Joint*> worldJoints;
 		public:
 			void addJoint(Joint* joint);
@@ -43,5 +51,9 @@ namespace block
 			Kernel();
 			~Kernel();
 		};
+
+		HitTestInfo g3dHitTest(Body* body1, Body* body2);
+		HitTestInfo g3dHitTest(Primitive* prim1, Primitive* prim2);
+		static bool g3dPointInExtents(Body* body, const Vector3& pt);
 	}
 }

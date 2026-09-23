@@ -310,6 +310,7 @@
     <ClInclude Include="world\object\renderstub.h" />
     <ClInclude Include="world\object\stepperstub.h" />
     <ClInclude Include="world\physics\body.h" />
+    <ClInclude Include="world\physics\joint\bumpJoint.h" />
     <ClInclude Include="world\physics\joint\motorJoint.h" />
     <ClInclude Include="world\physics\joint\joint.h" />
     <ClInclude Include="world\physics\kernel.h" />
@@ -322,6 +323,7 @@
     <ClInclude Include="world\render\surface.hpp" />
     <ClInclude Include="world\runService.h" />
     <ClInclude Include="world\ui\control.h" />
+    <ClInclude Include="world\ui\fonts.h" />
     <ClInclude Include="world\ui\guiRoot.h" />
     <ClInclude Include="world\workspace.h" />
   </ItemGroup>
@@ -421,14 +423,17 @@
     <ClCompile Include="world\object\partinstance.cpp" />
     <ClCompile Include="world\object\pvinstance.cpp" />
     <ClCompile Include="world\physics\body.cpp" />
+    <ClCompile Include="world\physics\joint\bumpJoint.cpp" />
     <ClCompile Include="world\physics\joint\motorJoint.cpp" />
-    <ClCompile Include="world\physics\joint\_joint.cpp" />
+    <ClCompile Include="world\physics\joint\krnJoint.cpp" />
     <ClCompile Include="world\physics\kernel.cpp" />
     <ClCompile Include="world\physics\primitive.cpp" />
     <ClCompile Include="world\render\blockMesh.cpp" />
     <ClCompile Include="world\render\renderLevel.cpp" />
     <ClCompile Include="world\render\renderWorld.cpp" />
     <ClCompile Include="world\runService.cpp" />
+    <ClCompile Include="world\ui\control.cpp" />
+    <ClCompile Include="world\ui\fonts.cpp" />
     <ClCompile Include="world\ui\guiRoot.cpp" />
     <ClCompile Include="world\workspace.cpp" />
   </ItemGroup>

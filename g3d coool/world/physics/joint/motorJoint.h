@@ -12,7 +12,12 @@ namespace block
 		protected:
 			dJointID connectingJoint;
 		public:
-			void createMotor(Body* body1, Body* body2);
+			Vector3 getRotAxis2();
+			Vector3 getAnchorPt();
+			void createMotor(PartInstance* connected, PartInstance* motor);
+			void bendJoint();
+			void connectSingleHinge();
+			void connectHinge2();
 			void connect();
 			bool connected();
 			MotorJoint() {}

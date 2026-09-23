@@ -26,6 +26,8 @@ namespace block
 		float reflectancy;
 		bool anchored;
 		bool canCollide;
+		Vector3 rotVelocity;
+		Vector3 linVelocity;
 		Vector3 size;
 		Color4 color;
 		int _block;
@@ -130,7 +132,13 @@ namespace block
 		Vector3 getRotVelocity();
 		bool getNameShown() { return nameShown; }
 		void setNameShown(bool show) { nameShown = show; }
-		Physics::Body* getBody() { return body; }
+		Physics::Body* getBody();
+		Physics::Primitive* getPrimitive() { return primitive; }
+		Box getBox() { return Box(-size, size); }
+
+		static Vector3 getNormalIdDirection(NormalId normal);
+		static Vector3 getNormalFromId(const CoordinateFrame& cframe, NormalId normal);
+		static NormalId getNormalFromVector(const CoordinateFrame& cframeWorld, const Vector3& direction);
 
 		void doRender(RenderDevice* renderDevice);
 		void onStep();

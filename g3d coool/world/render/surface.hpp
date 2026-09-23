@@ -3,8 +3,8 @@
 #include "renderHelp.hpp"
 #include "cylinder.hpp"
 
-#define bump_pad 0.5f
-#define bump 0.15f
+#define bump_pad 1
+#define bump 0.3f
 
 static void build_simple_bump(block::Block* self, const Vector3& size, const CoordinateFrame& offset)
 {
@@ -15,7 +15,8 @@ static void build_simple_bump(block::Block* self, const Vector3& size, const Coo
 	build_simple_face(self, block::LEFT, size, offset);
 }
 
-static void add_torq_surface(block::Block* self, const Vector3& size, block::Controller::ControllerType control, block::Face face, int hinge)
+/* maybe make this its own pass instaed of storing surface indices in the part */
+static void add_torq_surface(block::Block* self, const Vector3& size, block::Controller::ControllerType control, block::NormalId face, int hinge)
 {
 	CoordinateFrame origin;
 	switch (face)
@@ -62,43 +63,20 @@ static void add_torq_surface(block::Block* self, const Vector3& size, block::Con
 	}
 	else
 	{
-		Color3 baseColor = Color3::gray();
-		switch (control)
-		{
-			case block::Controller::PRIMARY_CONTROLLER:
-			{
-				baseColor = Color3::red();
-				break;
-			}
-			case block::Controller::SECONDARY_CONTROLLER:
-			{
-				baseColor = Color3::blue();
-				break;
-			}
-			case block::Controller::AI_CHASE_CONTROLLER:
-			{
-				baseColor = Color3::black();
-				break;
-			}
-			case block::Controller::AI_FLEE_CONTROLLER:
-			{
-				baseColor = Color3::yellow();
-				break;
-			}
-		}
-		build_surface_cylinder(self, origin, Color3::yellow(), 0.2f, 0.075f, 6);
-		build_surface_cylinder(self, origin, baseColor, 0.05f, 0.15f, 6);
+		Color3 baseColor = block::Controller::controllerTypeToColor(control);
+		build_surface_cylinder(self, origin, Color3::yellow(), 0.5f, 0.2f, 6);
+		build_surface_cylinder(self, origin, baseColor, 0.15f, 0.4f, 6);
 	}
 }
 
-static void add_bumps(block::Block* self, const Vector3& size, block::Face face)
+static void add_bumps(block::Block* self, const Vector3& size, block::NormalId face)
 {
 	CoordinateFrame origin;
 	Vector3 axis_hors;
 	Vector3 axis_vert;
 	int x = 0;
 	int y = 0;
-	Vector3 realSize = size * 4;
+	Vector3 realSize = size * 2;
 	switch (face)
 	{
 	case block::TOP:
@@ -110,13 +88,13 @@ static void add_bumps(block::Block* self, const Vector3& size, block::Face face)
 		axis_vert = Vector3(0, 0, 1);
 		if (face == block::TOP)
 		{
-			origin = Vector3(-size.x + 0.25f, size.y, -size.z + 0.25f);
+			origin = Vector3(-size.x + 0.5f, size.y, -size.z + 0.5f);
 			origin.rotation = Matrix3::fromEulerAnglesXYZ(0, 0, 0);
 			break;
 		}
 		else
 		{
-			origin = Vector3(-size.x + 0.25f, -size.y, -size.z + 0.25f);
+			origin = Vector3(-size.x + 0.5f, -size.y, -size.z + 0.5f);
 			origin.rotation = Matrix3::fromEulerAnglesXYZ(toRadians(180), 0, 0);
 			break;
 		}
@@ -131,13 +109,13 @@ static void add_bumps(block::Block* self, const Vector3& size, block::Face face)
 		axis_vert = Vector3(0, 1, 0);
 		if (face == block::RIGHT)
 		{
-			origin = Vector3(size.x, -size.y + 0.25f, -size.z + 0.25f);
+			origin = Vector3(size.x, -size.y + 0.5f, -size.z + 0.5f);
 			origin.rotation = Matrix3::fromEulerAnglesXYZ(toRadians(90), 0, toRadians(-90));
 			break;
 		}
 		else
 		{
-			origin = Vector3(-size.x, -size.y + 0.25f, -size.z + 0.25f);
+			origin = Vector3(-size.x, -size.y + 0.5f, -size.z + 0.5f);
 			origin.rotation = Matrix3::fromEulerAnglesXYZ(toRadians(-90), 0, toRadians(90));
 			break;
 		}
@@ -152,13 +130,13 @@ static void add_bumps(block::Block* self, const Vector3& size, block::Face face)
 		axis_vert = Vector3(0, 1, 0);
 		if (face == block::FRONT)
 		{
-			origin = Vector3(-size.x + 0.25f, -size.y + 0.25f, -size.z);
+			origin = Vector3(-size.x + 0.5f, -size.y + 0.5f, -size.z);
 			origin.rotation = Matrix3::fromEulerAnglesXYZ(toRadians(-90), 0, toRadians(0));
 			break;
 		}
 		else
 		{
-			origin = Vector3(-size.x + 0.25f, -size.y + 0.25f, size.z);
+			origin = Vector3(-size.x + 0.5f, -size.y + 0.5f, size.z);
 			origin.rotation = Matrix3::fromEulerAnglesXYZ(toRadians(90), 0, toRadians(0));
 			break;
 		}

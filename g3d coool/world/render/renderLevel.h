@@ -21,14 +21,15 @@ namespace block
 		HINGE
 	};
 
-	enum Face
+	enum NormalId
 	{
-		TOP,
-		BOTTOM,
-		LEFT,
 		RIGHT,
+		TOP,
+		BACK,
+		LEFT,
+		BOTTOM,
 		FRONT,
-		BACK
+		UNDEFINED
 	};
 
 	class PartInstance;
@@ -81,6 +82,8 @@ namespace block
 		void changeLevel(int blockIndex, RenderLevel::Level* to);
 		void removeBlock(int blockIndex);
 
+		static RenderLevel* get();
+
 		LightingRef getLighting() { return lighting; }
 		LightingParameters getLightingParameters() { return lightingParameters; }
 
@@ -98,12 +101,12 @@ namespace block
 		Array<uint32_t> surface_indices;
 		RenderLevel::Level* level;
 		CoordinateFrame center;
-		bool dirty;
 
-		void buildBlockFace(SurfaceType surface, Face face, const Vector3& size, const CoordinateFrame& cframe);
-		void build3DSurface(SurfaceType surface, Face face, Controller::ControllerType controller, const Vector3& size, const CoordinateFrame& cframe);
+		void buildBlockFace(SurfaceType surface, NormalId face, const Vector3& size);
+		void build3DSurface(SurfaceType surface, NormalId face, Controller::ControllerType controller, const Vector3& size, const CoordinateFrame& cframe);
 		void translateBlock(const CoordinateFrame& cframe);
 		void translateSurfaces(const CoordinateFrame& cframe);
+		Block();
 	};
 
 }

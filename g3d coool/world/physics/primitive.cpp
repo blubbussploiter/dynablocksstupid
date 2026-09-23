@@ -1,6 +1,21 @@
 #include "primitive.h"
 #include "body.h"
 
+/* replace by extents later */
+AABox block::Physics::Primitive::getAABox()
+{
+	CoordinateFrame pos = getPosition();
+	Vector3 hi = pos.pointToWorldSpace(size);
+	Vector3 low = pos.pointToWorldSpace(-size);
+	return AABox(-low, hi);
+}
+
+Box block::Physics::Primitive::getBox()
+{
+	printf("size = %f, %f, %f\n", size.x, size.y, size.z);
+	return getPosition().toWorldSpace(Box(-size, size));
+}
+
 void block::Physics::Primitive::setPosition(const CoordinateFrame& position)
 {
 	if (geom[0])
@@ -34,26 +49,49 @@ void block::Physics::Primitive::setSize(const Vector3& size)
 		{
 			case Geometry::GEOMETRY_BLOCK:
 			{
-				dGeomBoxSetLengths(geom[0], size.x / 2, size.y / 2, size.z / 2);
+				dGeomBoxSetLengths(geom[0], size.x, size.y, size.z);
+				this->size = size;
 				break;
 			}
 			default:
 			{
-				dGeomSphereSetRadius(geom[0], size.y / 8);
+				this->size = size / 2;
+				dGeomSphereSetRadius(geom[0], this->size.y);
 				break;
 			}
 		}
 	}
 }
 
+Vector3 block::Physics::Primitive::getSize()
+{
+	if (geom[0])
+	{
+		switch (geometry)
+		{
+			case Geometry::GEOMETRY_BLOCK:
+			{
+				dVector3 lengths;
+				dGeomBoxGetLengths(geom[0], lengths);
+				return Vector3(lengths);
+			}
+			case Geometry::GEOMETRY_SPHERE:
+			{
+				dReal rad = dGeomSphereGetRadius(geom[0]);
+				return Vector3(rad, rad, rad);
+			}
+		}
+	}
+	else
+	{
+		return size;
+	}
+}
+
 void block::Physics::Primitive::modifyOffsetWorldCoordinateFrame(CoordinateFrame offset)
 {
-
-	if (body)
+	if (geom[0])
 	{
-
-		if (!geom[0]) return;
-
 		Vector3 position = offset.translation;
 		Matrix3 rotation = offset.rotation;
 
@@ -80,15 +118,16 @@ block::Physics::Primitive::Primitive(const Vector3& size, const CoordinateFrame&
 		{
 		case Geometry::GEOMETRY_BLOCK:
 		{
-			geom[0] = dCreateBox(Kernel::get()->space, size.x / 2, size.y / 2, size.z / 2);
+			geom[0] = dCreateBox(Kernel::get()->space, size.x, size.y, size.z);
 			break;
 		}
 		default:
 		{
-			geom[0] = dCreateSphere(Kernel::get()->space, size.x / 8); /* why are spheres so big */
+			geom[0] = dCreateSphere(Kernel::get()->space, size.x / 2); /* why are spheres so big */
 			break;
 		}
 		}
+		this->size = size;
 		this->geometry = geometry;
 		float dRotation[12] = g3dtoode(rotation);
 		dGeomSetPosition(geom[0], translation.x, translation.y, translation.z);

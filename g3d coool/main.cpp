@@ -14,6 +14,7 @@ int main()
 
 	App app(settings);
 	app.setDebugMode(true);
+	app.debugController.setMoveRate(20);
 	app.debugController.setActive(true);
 
 	app.run();

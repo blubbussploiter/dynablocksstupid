@@ -1,4 +1,6 @@
 #include "body.h"
+#include "primitive.h"
+#include "joint/joint.h"
 
 CoordinateFrame block::Physics::Body::getPosition()
 {
@@ -11,26 +13,62 @@ CoordinateFrame block::Physics::Body::getPosition()
 			rotation[8], rotation[9], rotation[10]),
 			Vector3(position[0], position[1], position[2]));
 	}
+	return CoordinateFrame();
+}
+
+Vector3 block::Physics::Body::getTranslation()
+{
+	return getPosition().translation;
+}
+
+void block::Physics::Body::setTotalMass(float fMass)
+{
+	if (body)
+	{
+		dMass mass;
+		dBodyGetMass(body, &mass);
+		dMassAdjust(&mass, fMass);
+		dBodySetMass(body, &mass);
+	}
 }
 
 void block::Physics::Body::setAnchored(bool anchored)
 {
-	this->anchored = anchored;
-	if (anchored)
+	if (anchored != this->anchored)
 	{
-		printf("anchored\n");
-		//remove();
-		//body = 0;
-		dBodyDisable(body);
-		dBodySetGravityMode(body, 0);
+		this->anchored = anchored;
+		bendJoints(); /* joints need to be rebuilt */
+		if (anchored)
+		{
+			dBodyDisable(body);
+			dBodySetGravityMode(body, 0);
+		}
+		else
+		{
+			dBodyEnable(body);
+			dBodySetGravityMode(body, 1);
+		}
 	}
-	else
+}
+
+void block::Physics::Body::setCofm(const Vector3& newCofm)
+{
+	if (body)
 	{
-		printf("unachored\n");
-		dBodyEnable(body);
-		dBodySetGravityMode(body, 1);
-		//create();
+		dMass mass;
+		Vector3 translated;
+		dBodyGetMass(body, &mass);
+		translated.x = (mass.c[0] - newCofm.x);
+		translated.y = (mass.c[1] - newCofm.y);
+		translated.z = (mass.c[2] - newCofm.z);
+		dMassTranslate(&mass, translated.x, translated.y, translated.z);
+		dBodySetMass(body, &mass);
 	}
+}
+
+Vector3 block::Physics::Body::getSize()
+{
+	return size;
 }
 
 void block::Physics::Body::setSize(const Vector3& size)
@@ -38,16 +76,18 @@ void block::Physics::Body::setSize(const Vector3& size)
 	if (body)
 	{
 		dMass mass;
+		dBodyGetMass(body, &mass);
+		this->size = size;
 		switch (geometry)
 		{
 			case GEOMETRY_BLOCK:
 			{
-				mass.setBox(0.05f, size.x / 2, size.y / 2, size.z / 2);
+				mass.setBox(0.01f, size.x / 2, size.y / 2, size.z / 2);
 				break;
 			}
 			default:
 			{
-				mass.setSphere(0.05f, size.x / 2);
+				mass.setSphere(0.01f, size.x / 2);
 				break;
 			}
 		}
@@ -92,6 +132,7 @@ void block::Physics::Body::remove()
 	if (body != 0)
 	{
 		Kernel::get()->removeBody(body);
+		body = 0;
 	}
 }
 
@@ -123,6 +164,94 @@ void block::Physics::Body::notifyAttach(Primitive* primitive)
 	}
 }
 
+void block::Physics::Body::notifyAttachJoint(Joint* joint)
+{
+	if (!joints.contains(joint))
+	{
+		joints.append(joint);
+	}
+}
+
+void block::Physics::Body::notifyDetachJoint(Joint* joint)
+{
+	if (joints.contains(joint))
+	{
+		joints.remove(joints.findIndex(joint));
+	}
+}
+
+void block::Physics::Body::joinBody(Body* body)
+{
+	/* a compound body's sole reason is to house bodies and
+	   attach their primitives to itself, then when its no longer needed
+	   it dies. */
+	if (body->compound && body != parent && body != this)
+	{
+		/* detach our primitives and attach them to body */
+		/* might not work im doing this all in my head (bad practice) */
+		/* but in theory: this should assimilate  the old parents children into our new parent, given these should connect */
+		if (parent)
+		{
+			for (int i = 0; i < parent->children.size(); i++)
+			{
+				Body* child = parent->children[i];
+				child->leaveBody();
+				child->joinBody(body);
+			}
+		}
+		parent = body;
+		parent->children.append(this);
+		if (this->body)
+		{
+			setAnchored(1);
+		}
+	}
+}
+
+void block::Physics::Body::leaveBody()
+{
+	if (parent)
+	{
+		for (int i = 0; i < parent->attached.size(); i++)
+		{
+			Primitive* prim = attached[i];
+			prim->detach();
+			prim->attach(this);
+		}
+		if (!body)
+		{
+			create();
+		}
+		parent->children.remove(parent->children.findIndex(this));
+		parent = 0;
+	}
+}
+
+void block::Physics::Body::bendJoints()
+{
+	for (int i = 0; i < joints.size(); i++)
+	{
+		joints[i]->bendJoint();
+	}
+}
+
+bool block::Physics::Body::atRest()
+{
+	if (body)
+	{
+		return dBodyIsEnabled(body);
+	}
+	return 0;
+}
+
+void block::Physics::Body::wakeUp()
+{
+	if (body && !anchored)
+	{
+		return dBodyEnable(body);
+	}
+}
+
 void block::Physics::Body::applyForce(const Vector3& force)
 {
 	if (body)
@@ -142,6 +271,49 @@ void block::Physics::Body::create()
 		body = Kernel::get()->createBody(size, origin, geometry);
 		setVelocity(velocity);
 	}
+}
+
+Box block::Physics::Body::getBox()
+{
+	if (body)
+	{
+		if(attached.size() == 1)
+		{
+			Primitive* primitive = attached[0];
+			return primitive->getBox();
+		}
+		else {
+			/* multiple: write this later */
+		}
+	}
+}
+
+AABox block::Physics::Body::getAABox()
+{
+	if (body)
+	{
+		if (attached.size() == 1)
+		{
+			Primitive* primitive = attached[0];
+			return primitive->getAABox();
+		}
+		else {
+			/* multiple: write this later */
+		}
+	}
+}
+
+bool block::Physics::Body::linkedTo(Body* body)
+{
+	return (parent && body->parent == parent || body->compound && body == parent || compound && body->compound && body == this);
+}
+
+block::Physics::Body* block::Physics::Body::makeEmptyCompound()
+{
+	Body* newCompound = new Body(Vector3::one(), CoordinateFrame(), GEOMETRY_BLOCK);
+	newCompound->remove();
+	newCompound->compound = true;
+	return newCompound;
 }
 
 block::Physics::Body::Body(const Vector3& size, const CoordinateFrame& position, Geometry geometry)

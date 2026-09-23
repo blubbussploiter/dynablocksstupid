@@ -162,12 +162,12 @@ block::Physics::Kernel::Kernel()
 	world = dWorldCreate();
 	space = dSimpleSpaceCreate(0);
 	contacts = dJointGroupCreate(0);
-	joints = dJointGroupCreate(0);
 	dWorldSetGravity(world, 0, -9.81F, 0);
 	dWorldSetAutoDisableFlag(world, 1);
 	dWorldSetAutoDisableLinearThreshold(world, 0.1f);
 	dWorldSetAutoDisableAngularThreshold(world, 0.1f);
 	dWorldSetAutoDisableSteps(world, 20);
+	dWorldSetERP(world, 0.5f);
 }
 
 block::Physics::Kernel::~Kernel()
@@ -176,4 +176,23 @@ block::Physics::Kernel::~Kernel()
 	dJointGroupDestroy(contacts);
 	dSpaceDestroy(space);
 	dWorldDestroy(world);
+}
+
+block::Physics::HitTestInfo block::Physics::g3dHitTest(Body* body1, Body* body2)
+{
+	HitTestInfo info;
+	CollisionDetection::penetrationDepthForFixedBoxFixedBox(body1->getBox(), body2->getBox(), info.contact_pt, info.contact_nm);
+	return info;
+}
+
+block::Physics::HitTestInfo block::Physics::g3dHitTest(Primitive* prim1, Primitive* prim2)
+{
+	HitTestInfo info;
+	CollisionDetection::penetrationDepthForFixedBoxFixedBox(prim1->getBox(), prim2->getBox(), info.contact_pt, info.contact_nm);
+	return info;
+}
+
+bool block::Physics::g3dPointInExtents(Body* body, const Vector3& pt)
+{
+	return (body->getBox().contains(pt * 0.001f));
 }

@@ -49,6 +49,15 @@ Vector3 block::RenderWorld::getVertice(uint32_t index)
 	return Vector3::zero();
 }
 
+Vector3 block::RenderWorld::getNormal(uint32_t index)
+{
+	if (vertexRef.size() > index)
+	{
+		return normals[index];
+	}
+	return Vector3::zero();
+}
+
 uint32_t block::RenderWorld::addVertice(Vector3 vertex, Vector3 normal, Color4 ncolor, Vector2 uv)
 {
 	if (freeVertex.size() > 0)
@@ -150,4 +159,9 @@ block::RenderWorld::RenderWorld()
 block::RenderWorld::~RenderWorld()
 {
 
+}
+
+block::RenderWorld* block::RenderWorld::get()
+{
+	return Datamodel::get()->renderWorld;
 }

@@ -188,7 +188,7 @@ static void build_ball(block::Block* self, Vector3& size)
 
     /* generate */
     generateIcosphereMesh(2, indices, vertices_temp);
-    reorder(size.x / 4, indices, vertices_temp, vertices);
+    reorder(size.x / 2, indices, vertices_temp, vertices);
     vertices_temp.clear();
     indices.clear();
 

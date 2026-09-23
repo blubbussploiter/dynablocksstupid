@@ -70,7 +70,7 @@ static void add_quad_relative(block::Block* block, const CoordinateFrame& relati
 	add_block_triangle(block, v1, v3, v4, color);
 }
 
-static void build_simple_face(block::Block* self, block::Face face, const Vector3& size, const CoordinateFrame& offset)
+static void build_simple_face(block::Block* self, block::NormalId face, const Vector3& size, const CoordinateFrame& offset)
 {
 	switch (face)
 	{

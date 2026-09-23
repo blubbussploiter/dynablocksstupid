@@ -597,6 +597,12 @@
     <ClInclude Include="world\physics\joint\motorJoint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="world\ui\fonts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="world\physics\joint\bumpJoint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\SDL_config.h.default" />
@@ -900,10 +906,19 @@
     <ClCompile Include="world\runService.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="world\physics\joint\_joint.cpp">
+    <ClCompile Include="world\physics\joint\krnJoint.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="world\physics\joint\motorJoint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="world\ui\fonts.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="world\ui\control.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="world\physics\joint\bumpJoint.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

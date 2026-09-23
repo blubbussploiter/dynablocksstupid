@@ -6,6 +6,8 @@
 #include "icosphere.hpp"
 #include "cylinder.hpp"
 
+/* this isnt as good or close to roblox's as i initially thought... so fix it up!! use adorns and stuff too -> cool wrapper */
+
 void block::RenderLevel::Level::renderGeometry(RenderDevice* renderDevice)
 {
 	if (indexArray.size() > 0)
@@ -23,7 +25,7 @@ void block::RenderLevel::notifyBlockChangeColor(int blockIndex, const Color4& ne
 		{
 			for (int i = 0; i < block->part_indices.size(); i++)
 			{
-				__render_world->updateVerticeColor(block->part_indices[i], newColor);
+				RenderWorld::get()->updateVerticeColor(block->part_indices[i], newColor);
 			}
 		}
 	}
@@ -55,17 +57,17 @@ void block::RenderLevel::removeBlock(int blockIndex)
 		for (int i = 0; i < block->part_indices.size(); i++)
 		{
 			block->level->removeIndex(block->part_indices[i]);
-			__render_world->removeVertice(block->part_indices[i]);
+			RenderWorld::get()->removeVertice(block->part_indices[i]);
 		}
 		for (int i = 0; i < block->cylinder_indices.size(); i++)
 		{
 			block->level->removeIndex(block->cylinder_indices[i]);
-			__render_world->removeVertice(block->cylinder_indices[i]);
+			RenderWorld::get()->removeVertice(block->cylinder_indices[i]);
 		}
 		for (int i = 0; i < block->surface_indices.size(); i++)
 		{
 			surfaceLevel->removeIndex(block->surface_indices[i]);
-			__render_world->removeVertice(block->surface_indices[i]);
+			RenderWorld::get()->removeVertice(block->surface_indices[i]);
 		}
 		block->cylinder_indices.clear();
 		block->part_indices.clear();
@@ -85,6 +87,8 @@ int block::RenderLevel::createBlockFromBlockInstance(PartInstance* blockInstance
 {
 	if (blockInstance->_block == -1)
 	{
+
+		/* what the fuck was i thinking writing this? this is horrible! */
 		Block* newBlock = new Block();
 		int blockIndex = renderBlocks.size();
 
@@ -112,12 +116,12 @@ int block::RenderLevel::createBlockFromBlockInstance(PartInstance* blockInstance
 		{
 			case BlockType::NORMAL_BLOCK:
 			{
-				newBlock->buildBlockFace(blockInstance->top, TOP, blockInstance->size, blockInstance->cframe);
-				newBlock->buildBlockFace(blockInstance->bottom, BOTTOM, blockInstance->size, blockInstance->cframe);
-				newBlock->buildBlockFace(blockInstance->front, FRONT, blockInstance->size, blockInstance->cframe);
-				newBlock->buildBlockFace(blockInstance->back, BACK, blockInstance->size, blockInstance->cframe);
-				newBlock->buildBlockFace(blockInstance->right, RIGHT, blockInstance->size, blockInstance->cframe);
-				newBlock->buildBlockFace(blockInstance->left, LEFT, blockInstance->size, blockInstance->cframe);
+				newBlock->buildBlockFace(blockInstance->top, TOP, blockInstance->size);
+				newBlock->buildBlockFace(blockInstance->bottom, BOTTOM, blockInstance->size);
+				newBlock->buildBlockFace(blockInstance->front, FRONT, blockInstance->size);
+				newBlock->buildBlockFace(blockInstance->back, BACK, blockInstance->size);
+				newBlock->buildBlockFace(blockInstance->right, RIGHT, blockInstance->size);
+				newBlock->buildBlockFace(blockInstance->left, LEFT, blockInstance->size);
 				break;
 			}
 			case BlockType::BALL_BLOCK:
@@ -127,9 +131,11 @@ int block::RenderLevel::createBlockFromBlockInstance(PartInstance* blockInstance
 			}
 			case BlockType::CYLINDER_BLOCK:
 			{
+				/* todo: fix cylinder surfaces
+					make 3d surface render functions outside of the main mesh var */
 				CoordinateFrame origin;
-				float height = blockInstance->size.y / 4;
-				float radius = blockInstance->size.x / 4;
+				float height = blockInstance->size.y / 2;
+				float radius = blockInstance->size.x / 2;
 				build_cylinder(newBlock, blockInstance->cframe, blockInstance->color, height, radius, 10);
 				build_pluses(newBlock, blockInstance->cframe, height);
 				break;
@@ -142,20 +148,31 @@ int block::RenderLevel::createBlockFromBlockInstance(PartInstance* blockInstance
 		newBlock->build3DSurface(blockInstance->back, BACK, blockInstance->controllerType, blockInstance->size, blockInstance->cframe);
 		newBlock->build3DSurface(blockInstance->right, RIGHT, blockInstance->controllerType, blockInstance->size, blockInstance->cframe);
 		newBlock->build3DSurface(blockInstance->left, LEFT, blockInstance->controllerType, blockInstance->size, blockInstance->cframe);
-		if (blockInstance->blockType != block::CYLINDER_BLOCK)
-		{
-			newBlock->translateBlock(blockInstance->cframe);
-		}
-		else { /* why translate here? because we translate in the build_cylinder call, this should probably change in the future to clean this up a bit, but it works for giving that
-			`roblox` look to it */
-			newBlock->translateSurfaces(blockInstance->cframe);
-			newBlock->center = blockInstance->cframe;
-		}
+
+		newBlock->translateBlock(blockInstance->cframe);
 		notifyBlockChangeColor(blockIndex, blockInstance->color);
 
 		return blockIndex;
 	}
 	return -1;
+}
+
+void block::RenderLevel::Level::addIndex(uint32 index)
+{
+	int i = indexArray.findIndex(index);
+	if (i == -1)
+	{
+		indexArray.append(index);
+	}
+}
+
+void block::RenderLevel::Level::removeIndex(uint32 index)
+{
+	int i = indexArray.findIndex(index);
+	if (i != -1)
+	{
+		indexArray.remove(i);
+	}
 }
 
 block::RenderLevel::RenderLevel()
@@ -183,20 +200,7 @@ block::RenderLevel::~RenderLevel()
 	renderBlocks.clear();
 }
 
-void block::RenderLevel::Level::addIndex(uint32 index)
+block::RenderLevel* block::RenderLevel::get()
 {
-	int i = indexArray.findIndex(index);
-	if (i == -1)
-	{
-		indexArray.append(index);
-	}
-}
-
-void block::RenderLevel::Level::removeIndex(uint32 index)
-{
-	int i = indexArray.findIndex(index);
-	if (i != -1)
-	{
-		indexArray.remove(i);
-	}
+	return Datamodel::get()->renderLevel;
 }

@@ -18,6 +18,22 @@ void block::WorkspaceInstance::doRender(RenderDevice* renderDevice)
 	for (int i = 0; i < workspaceRenderables.size(); i++)
 	{
 		workspaceRenderables[i]->doRender(renderDevice);
+		auto fuuck = workspaceRenderables[i];
+		if (isA(fuuck, "Block"))
+		{
+			PartInstance* greekFavorites = toClassType<PartInstance>(fuuck);
+			Physics::Body* body = greekFavorites->getBody();
+			Physics::Primitive* prim = greekFavorites->getPrimitive();
+			if (body)
+			{
+				//Draw::box(body->getPosition().toWorldSpace(Box(-(body->getSize() / 2), (body->getSize() / 2))), renderDevice, Color4::CLEAR, Color3::blue());
+				//Draw::sphere(Sphere(body->getTranslation(), 0.5f), renderDevice, Color4::CLEAR, Color3::green());
+			}
+			if (prim)
+			{
+				//Draw::box(prim->getPosition().toWorldSpace(Box(-(prim->getSize() / 1.75f), prim->getSize() / 1.75f)), renderDevice, Color4::CLEAR, Color3::green());
+			}
+		}
 	}
 
 	renderDevice->push2D();
@@ -77,7 +93,7 @@ void block::WorkspaceInstance::onDescendentAdded(Instance* parent, Instance* des
 			PartInstance* blockInstance = toClassType<PartInstance>(renderStub);
 			if (blockInstance->_block == -1)
 			{
-				blockInstance->_block = __render_level->createBlockFromBlockInstance(blockInstance);
+				blockInstance->_block = RenderLevel::get()->createBlockFromBlockInstance(blockInstance);
 			}
 		}
 	}
@@ -110,7 +126,7 @@ void block::WorkspaceInstance::onDescendentRemoved(Instance* parent, Instance* d
 			PartInstance* blockInstance = toClassType<PartInstance>(renderStub);
 			if (blockInstance->_block != -1)
 			{
-				__render_level->removeBlock(blockInstance->_block);
+				RenderLevel::get()->removeBlock(blockInstance->_block);
 				blockInstance->_block = -1;
 			}
 		}

@@ -19,6 +19,8 @@ namespace block
 			PLAYER_CONTROLLER,
 			NUM_CONTROLLER_TYPES
 		};
+
+		static Color3 controllerTypeToColor(ControllerType type);
 	};
 
 	typedef ReferenceCountedPointer<Controller> ControllerRef;

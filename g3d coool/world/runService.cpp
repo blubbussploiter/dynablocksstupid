@@ -29,9 +29,9 @@ void block::RunService::step()
 {
 	if (running)
 	{
-		for (int i = 0; i < 8; i++)
+		for (int i = 0; i < 12; i++)
 		{
-			physics->step(0.01f);
+			physics->step(0.012f);
 		}
 		for (int i = 0; i < steppers.size(); i++)
 		{
